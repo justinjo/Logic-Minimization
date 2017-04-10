@@ -25,32 +25,33 @@ def split_input(lines):
     '''Splits input into numeric elements
     returns nested list of numbers
     '''
-    terms = []
+    term_list = []
     for string in lines:
-        terms.append(split_line(string))
-    return terms
+        term_list.append(split_line(string))
+    return term_list
 
 
 def split_line(line):
     '''Splits the input line into numeric elements
     returns list of numbers, empty if non-numeric input
     '''
+    matches = []
+    # split line by '+' character to facilitate regex matching
     split_line = line.split('+')
     patterns = [re.compile('m\(.+\)'), re.compile('d\(.+\)')]
-    matches = []
     for pattern, string in zip(patterns, split_line):
         match = pattern.search(string)
         if match is not None:
-            string = match.group(0)[2:-1].split(',')
+            # isolate the internal arguments and split by comma
+            str_terms = match.group(0)[2:-1].split(',')
             try:
-                terms = map(int, string)
-                matches.append(terms)
+                int_terms = list(map(int, str_terms))
             except ValueError:
-                pass
+                continue
             except Exception:
-                return []
-        else:
-            return []
+                continue
+            else:
+                matches.append(int_terms)
     return matches
 
 
