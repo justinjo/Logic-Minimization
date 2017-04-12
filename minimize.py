@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 import sys
 import re
+import qm
 
 def print_usage():
+    '''Prints usage of program
+    '''
     print('Enter one or more logic functions with the given format:')
     print('m(minterms)[optional +d(don\'t care conditions)]')
     print('Ex. m(0,1,2,3)+d(5,6,7)')
@@ -60,5 +63,9 @@ if __name__ == '__main__':
     fp = sys.stdin if len(sys.argv) < 2 else open(sys.argv[1])
     lines = read_input(fp)
     minterms = split_input(lines)
-    for item in minterms:
-        print(item)
+    for terms, line in zip(minterms, lines):
+        function = qm.minimize(terms)
+        #print(line[:-1])
+        #print(function[0])
+        #print(function[1])
+
