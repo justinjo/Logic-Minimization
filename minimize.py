@@ -63,6 +63,7 @@ if __name__ == '__main__':
     fp = sys.stdin if len(sys.argv) < 2 else open(sys.argv[1])
     lines = read_input(fp)
     minterms = split_input(lines)
+    #print(minterms)
     for terms, line in zip(minterms, lines):
         [sop, pos] = qm.minimize(terms)
         print(line[:-1])
