@@ -46,10 +46,10 @@ def generate_sop(minterms, dcs):
     # lo - leftover
     [lo_minterms, lo_pi, epi_list] = extract_epi(minterms, pi_list)
     
-    sop = '='
     if lo_minterms != []:
         #petrick
-        pass
+        epi_list.extend(petrick(lo_minterms, lo_pi))
+    sop = '='
     for epi in epi_list:
         sop += epi.boolean_product(literals) + '+'
     sop = sop if len(sop) == 1 else sop[:-1]
@@ -63,15 +63,12 @@ def generate_pos(minterms, dcs):
         return '=1'
     imp_list = generate_implicants(minterms, dcs, literals)
     pi_list = implicate(imp_list)
-    for pi in pi_list:
-        print(pi.minterms)
     # lo - leftover
     [lo_minterms, lo_pi, epi_list] = extract_epi(minterms, pi_list)
     
-    pos = '='
     if lo_minterms != []:
-        #petrick
-        pass
+        epi_list.extend(petrick(lo_minterms, lo_pi))
+    pos = '='
     for epi in epi_list:
         pos += '(' + epi.boolean_dual(literals) + ')'
     return pos
@@ -178,3 +175,30 @@ def best_prime(primes):
     for p in primes:
         max_p = p if len(p.minterms) > len(max_p.minterms) else max_p
     return [max_p, list(set(primes) - {max_p})]
+
+
+def petrick(minterms, primes):
+    group = [[] for i in range(len(minterms))]
+    for i, m in enumerate(minterms):
+        for p in primes:
+            if m in p.minterms:
+                group[i].append(p)
+    # list of lists (groupings)
+    expansion = [[]]
+    while len(group) > 0:
+        g = group.pop()
+        cart = []
+        for elem in g:
+            for e in expansion:
+                cart.append(list(set(e + [elem])))
+        expansion = cart
+    min_length = (1 << 32) - 1 # huge number
+    min_index = 0
+    min_cover = []
+    for i, e in enumerate(expansion):
+        if len(e) < min_length:
+            min_length = len(e)
+            min_index = i
+            min_cover = e
+    return min_cover
+

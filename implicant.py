@@ -21,6 +21,12 @@ class Implicant(object):
         b = b[::-1]
         return int(b, 2)
 
+
+    def __repr__(self):
+        return 'Imp ' + str(self.minterms)
+
+
+
     def calc_distance(self, imp):
         return min(imp.minterms) - min(self.minterms)
 
