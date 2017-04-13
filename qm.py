@@ -7,31 +7,15 @@ def minimize(args):
     '''
     if args == []:
         return ['NONE', 'NONE']
-
+    
     minterms = remove_duplicates(args[0])
     dcs = [] if len(args) < 2 else remove_duplicates(args[1])
-
+    
     if terms_overlap(minterms, dcs):
         return ['NONE', 'NONE']
 
-    literals = num_literals(max(minterms + dcs))
-    imp_list = generate_implicants(minterms, dcs, literals)
-    pi_list = implicate(imp_list)
-    
-    # lo - leftover
-    [lo_minterms, lo_pi, epi_list] = extract_epi(minterms, pi_list)
-    
-    sop = '='
-    pos = '='
-    if lo_minterms == []:
-        # no need to petrick
-        for epi in epi_list:
-            sop += epi.boolean_product(literals) + '+'
-        sop = sop[:-1]
-        for epi in epi_list:
-            pos += '(' + epi.boolean_dual(literals) + ')'
-    else:
-        pass
+    sop = generate_sop(minterms, dcs)
+    pos = generate_pos(minterms, dcs)
 
     return [sop, pos]
 
@@ -50,6 +34,53 @@ def hamming_weight(num):
 
 def num_literals(num):
     return len(bin(num)) - 2
+
+
+def generate_sop(minterms, dcs):
+    if minterms == []:
+        return '=0'
+    literals = num_literals(max(minterms + dcs))
+    imp_list = generate_implicants(minterms, dcs, literals)
+    pi_list = implicate(imp_list)
+
+    # lo - leftover
+    [lo_minterms, lo_pi, epi_list] = extract_epi(minterms, pi_list)
+    
+    sop = '='
+    if lo_minterms != []:
+        #petrick
+        pass
+    for epi in epi_list:
+        sop += epi.boolean_product(literals) + '+'
+    sop = sop if len(sop) == 1 else sop[:-1]
+    return sop
+
+
+def generate_pos(minterms, dcs):
+    literals = num_literals(max(minterms + dcs))
+    minterms = generate_dual(minterms, dcs, literals)
+    if minterms == []:
+        return '=1'
+    imp_list = generate_implicants(minterms, dcs, literals)
+    pi_list = implicate(imp_list)
+    for pi in pi_list:
+        print(pi.minterms)
+    # lo - leftover
+    [lo_minterms, lo_pi, epi_list] = extract_epi(minterms, pi_list)
+    
+    pos = '='
+    if lo_minterms != []:
+        #petrick
+        pass
+    for epi in epi_list:
+        pos += '(' + epi.boolean_dual(literals) + ')'
+    return pos
+
+
+def generate_dual(minterms, dcs, literals):
+    dual = [x for x in range(2**literals)]
+    dual = list(set(dual) - set(minterms) - set(dcs))
+    return dual
 
 
 def generate_implicants(minterms, dcs, literals):
@@ -122,7 +153,8 @@ def extract(minterms, primes):
     epi = []
 
     if len(minterms) == 1:
-        epi.append(primes.pop())
+        [pi, primes] = best_prime(primes)
+        epi.append(pi)
         minterms = []
 
     for m in minterms:
@@ -138,3 +170,11 @@ def extract(minterms, primes):
         cover.update(e.minterms)
 
     return [cover, epi, cover != set()]
+
+
+def best_prime(primes):
+    max_p = primes[0]
+    lengths = []
+    for p in primes:
+        max_p = p if len(p.minterms) > len(max_p.minterms) else max_p
+    return [max_p, list(set(primes) - {max_p})]

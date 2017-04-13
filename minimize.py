@@ -68,7 +68,6 @@ if __name__ == '__main__':
     lines = read_input(fp)
     minterms = split_input(lines)
     for terms, line in zip(minterms, lines):
-        print(terms)
         [sop, pos] = qm.minimize(terms)
         print(line[:-1])
         print(sop)
