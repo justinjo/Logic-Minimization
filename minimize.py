@@ -4,7 +4,8 @@ import re
 import qm
 
 def print_usage():
-    '''Prints usage of program
+    '''
+    Prints usage of program
     '''
     print('Enter one or more logic functions with the given format:')
     print('m(minterms)[optional +d(don\'t care conditions)]')
@@ -13,7 +14,8 @@ def print_usage():
 
 
 def read_input(fp):
-    '''Reads input by line
+    '''
+    Reads input by line
     returns list of input
     '''
     lines = []
@@ -25,7 +27,8 @@ def read_input(fp):
 
 
 def split_input(lines):
-    '''Splits input into numeric elements
+    '''
+    Splits multiple lines of input into numeric elements
     returns nested list of numbers
     '''
     term_list = []
@@ -35,7 +38,8 @@ def split_input(lines):
 
 
 def split_line(line):
-    '''Splits the input line into numeric elements
+    '''
+    Splits the input line into numeric elements
     returns list of numbers, empty if non-numeric input
     '''
     matches = []
@@ -63,8 +67,8 @@ if __name__ == '__main__':
     fp = sys.stdin if len(sys.argv) < 2 else open(sys.argv[1])
     lines = read_input(fp)
     minterms = split_input(lines)
-    #print(minterms)
     for terms, line in zip(minterms, lines):
+        print(terms)
         [sop, pos] = qm.minimize(terms)
         print(line[:-1])
         print(sop)

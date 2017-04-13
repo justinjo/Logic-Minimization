@@ -41,25 +41,12 @@ class Implicant(object):
         is_power_2 = dist > 0 and (dist & (dist - 1) == 0)
         return self.distance == imp.distance and is_power_2
 
-    def boolean_product(self, literals):
-        bool_prod = ''
-        b = self.binary(literals)
-        for i, c in enumerate(b):
-            bool_prod += chr(i + 65) if c != 'X' else ''
-            bool_prod += "'" if c == '0' else ''
-        if bool_prod == '' and len(self.minterms) > 0:
-            bool_prod = '1'
-        return bool_prod
-
-
-
-
 
     def binary(self, literals):
         '''generates binary representation of implicant
         returns implicant in binary, 'X' as don't care
         '''
-        b = '' 
+        b = ''
         # populate with 0 or X to start
         for i in range(literals):
             b += 'X' if 2**i in self.distance else '0'
@@ -70,8 +57,27 @@ class Implicant(object):
                 b = b[0:i] + '1' + b[i+1:]
         return b[::-1]
 
-    def log_product(self):
-        pass
 
-    def log_sum(self):
-        pass
+    def boolean_product(self, literals):
+        bool_prod = ''
+        b = self.binary(literals)
+        for i, c in enumerate(b):
+            bool_prod += chr(i + 65) if c != 'X' else ''
+            bool_prod += "'" if c == '0' else ''
+        if bool_prod == '' and len(self.minterms) > 0:
+            bool_prod = '1'
+        return bool_prod
+
+    def boolean_dual(self, literals):
+        bool_dual = ''
+        b = self.binary(literals)
+        for i, c in enumerate(b):
+            if c != 'X':
+                bool_dual += chr(i + 65)
+                bool_dual += "'" if c == '1' else ''
+                bool_dual += '+'
+        bool_dual = bool_dual[:-1]
+        if bool_dual == '' and len(self.minterms) > 0:
+            bool_dual = '0'
+        return bool_dual
+

@@ -1,11 +1,13 @@
 import implicant as imp
 
 def minimize(args):
-    '''minimizes the given minterms and don't care conditions
+    '''
+    Minimizes the given minterms and don't care conditions
     returns two strings representing the minimized function in SOP and POS form
     '''
-    if len(args) < 1:
+    if args == []:
         return ['NONE', 'NONE']
+
     minterms = remove_duplicates(args[0])
     dcs = [] if len(args) < 2 else remove_duplicates(args[1])
 
@@ -17,18 +19,21 @@ def minimize(args):
     pi_list = implicate(imp_list)
     
     # lo - leftover
-    [lo_minterms, lo_pi, epi_list] = extract(minterms, pi_list)
+    [lo_minterms, lo_pi, epi_list] = extract_epi(minterms, pi_list)
     
-    function = '='
+    sop = '='
+    pos = '='
     if lo_minterms == []:
         # no need to petrick
         for epi in epi_list:
-            function += epi.boolean_product(literals) + '+'
-        function = function[:-1]
+            sop += epi.boolean_product(literals) + '+'
+        sop = sop[:-1]
+        for epi in epi_list:
+            pos += '(' + epi.boolean_dual(literals) + ')'
     else:
         pass
 
-    return [function, 'POS']
+    return [sop, pos]
 
 
 def remove_duplicates(li):
@@ -40,19 +45,16 @@ def terms_overlap(minterms, dcs):
 
 
 def hamming_weight(num):
-    '''returns the hamming weight of a number
-    '''
     return bin(num).count('1')
 
 
 def num_literals(num):
-    '''returns the number of literals required to represent given number
-    '''
     return len(bin(num)) - 2
 
 
 def generate_implicants(minterms, dcs, literals):
-    '''given a list of minterms and don't care conditions, generates implicants
+    '''
+    Given a list of minterms and don't care conditions, generates implicants
     returns list of list of implicants grouped by hamming weight
     '''
     #list of sets of implicants
@@ -65,7 +67,8 @@ def generate_implicants(minterms, dcs, literals):
 
 
 def implicate(implicants):
-    '''groups implicants and recurses
+    '''
+    Groups implicants and recurses
     returns a list of all prime implicants
     '''
     num_elem = len(implicants)
@@ -74,8 +77,8 @@ def implicate(implicants):
     if num_elem == 1:
         return list(implicants[0])
 
-    next_imps = [set() for i in range(num_elem - 1)]
     pi_list = []
+    next_imps = [set() for i in range(num_elem - 1)]
     for i in range(num_elem - 1):
         for imp1 in implicants[i]:
             for imp2 in implicants[i + 1]:
@@ -88,38 +91,50 @@ def implicate(implicants):
     for imp in implicants[-1]:
         if imp.prime:
             pi_list.append(imp)
+
     pi_list.extend(implicate(next_imps))
     return pi_list
 
 
-def extract(minterms, primes):
-    '''extracts essential prime implicants
+def extract_epi(minterms, primes):
     '''
-    #list of essential prime implicants
+    returns list of essential prime implicants
+    '''
     epi_list = []
     still_extracting = True
     while still_extracting:
-        covered = set()
-        inner_epis = []
-        if len(minterms) == 1:
-            epi_list.append(primes[0])
-            minterms = []
-            primes.pop(0)
-            break
-        for m in minterms:
-            #list of prime implicants that cover m
-            pi_cover = []
-            for pi in primes:
-                if m in pi.minterms:
-                    pi_cover.append(pi)
-            if len(pi_cover) == 1:
-                inner_epis.append(pi_cover.pop())
-        for epi in inner_epis:
-            covered.update(epi.minterms)
+        [covered, inner_epis, still_extracting] = extract(minterms, primes)
         minterms = list(set(minterms) - covered)
         primes = list(set(primes) - set(inner_epis))
         epi_list.extend(list(set(inner_epis)))
-        still_extracting = covered != set()
-
     return [minterms, primes, epi_list]
 
+
+def extract(minterms, primes):
+    '''
+    extracts essential prime implicants
+    returns:
+        minterms covered by epi
+        epis extracted
+        whether more epis can be extracted
+    '''
+    cover = set()
+    epi = []
+
+    if len(minterms) == 1:
+        epi.append(primes.pop())
+        minterms = []
+
+    for m in minterms:
+        #list of prime implicants that cover m
+        pi_cover = []
+        for pi in primes:
+            if m in pi.minterms:
+                pi_cover.append(pi)
+        if len(pi_cover) == 1:
+            epi.append(pi_cover.pop())
+
+    for e in epi:
+        cover.update(e.minterms)
+
+    return [cover, epi, cover != set()]
